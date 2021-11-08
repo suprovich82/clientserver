@@ -9,6 +9,8 @@
 #include <errno.h>
 #include <arpa/inet.h> 
 
+#define PORT 3347
+
 int main(void)
 {
     printf("Started\n");
@@ -16,24 +18,31 @@ int main(void)
     char recvBuff[1024];
     struct sockaddr_in serv_addr; 
     int backlog = 2;
+    int addrlen = sizeof(serv_addr);
     
-    char Local_serv_addr[] =  "127.0.0.1"; // Localhost address
-
-    printf("%s", Local_serv_addr);
+    char Local_serv_addr[] =  "0.0.0.0";
 
     memset(recvBuff, '0',sizeof(recvBuff));
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     memset(&serv_addr, '0', sizeof(serv_addr)); 
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(222); 
+    serv_addr.sin_port = htons( PORT ); 
 
     inet_pton(AF_INET, Local_serv_addr, &serv_addr.sin_addr);
 
-    bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
 
-    listen(sockfd, backlog);
+    int res = bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    
+    int res2 = listen(sockfd, 3 );
+
+    int new_socket = accept(sockfd, (struct sockaddr *)&serv_addr, (socklen_t*)&addrlen);
+
+    int valread = read( new_socket , recvBuff, 1024);
+
+    recvBuff[valread] = 0;
+    fputs(recvBuff, stdout);
 
     getchar();
 
