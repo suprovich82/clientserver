@@ -26,23 +26,22 @@ struct _Command{
 
 
 void start( void ){
+    char cmd[256];
+    char port_str[10];
+    FILE *fp;
 
     if ( port != 0 ){
         buff_port = port;
     } else {
         buff_port = PORT;
     }
-    char cmd[256];
-    char port_str[10];
-
+    
     sprintf(port_str, "%d", buff_port);
 
     strcpy(cmd, binary);
     strcat(cmd, " start ");
     strcat(cmd, port_str);
     strcat(cmd, "&");
-
-    FILE *fp;
 
     fp = popen(cmd, "r");
     pclose(fp);
@@ -97,7 +96,7 @@ void setPort( void ){
     scanf("%d", &port);    
 }
 
-void stop( void ){ //  ps -ef | grep './server start' | grep -v 'grep' | cut -d' ' -f'3' | xargs kill
+void stop( void ){
     FILE *fp;
 
     fp = popen("ps -ef | grep 'server *start' | grep -v grep |  cut -d' ' -f'4' | xargs kill", "r");
