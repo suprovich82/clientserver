@@ -15,6 +15,7 @@
 int port = 0; // define by setPort function
 int buff_port = 0;
 int sockfd = 0;
+char binary[100];
 
 void setPort( void );
 
@@ -22,6 +23,29 @@ struct _Command{
     char name_command[10];
     void ( *P_of_Func ) ( void );
 };
+
+
+void start( void ){
+    char cmd[256];
+    char port_str[10];
+    FILE *fp;
+
+    if ( port != 0 ){
+        buff_port = port;
+    } else {
+        buff_port = PORT;
+    }
+    
+    sprintf(port_str, "%d", buff_port);
+
+    strcpy(cmd, binary);
+    strcat(cmd, " start ");
+    strcat(cmd, port_str);
+    strcat(cmd, "&");
+
+    fp = popen(cmd, "r");
+    pclose(fp);
+}
 
 void help( void ){
     printf( "Commands available:\n"
@@ -32,7 +56,7 @@ void help( void ){
             "- stop\n""        Stop server\n" );
 }
 
-void start( void ){
+void start_server( void ){
     
     char recvBuff[1024];
     struct sockaddr_in serv_addr; 
@@ -73,14 +97,13 @@ void setPort( void ){
 }
 
 void stop( void ){
-    if ( sockfd != 0 ) {
-        close(sockfd);
-        sockfd = 0;
-        printf("Close");
-    }   
+    FILE *fp;
+
+    fp = popen("ps -ef | grep 'server *start' | grep -v grep |  cut -d' ' -f'4' | xargs kill", "r");
+    pclose(fp);
 }
 
-int main(){
+void menu( void ){
 
     struct _Command help_St;
     struct _Command start_St;
@@ -110,7 +133,6 @@ int main(){
         scanf( "%s", string );
 
         if ( strcmp( string, "exit" ) == 0 ){
-            printf( "Exit_Flag\n" );
             exit_flag = 1;
             break;
         }
@@ -123,6 +145,21 @@ int main(){
             } 
         }
     }
+}
+
+int main( int argc, char* argv[] ){
+    strcpy(binary, argv[0]);
+
+    if ( 1 == argc ) {
+        menu();
+    } else if ( 3 == argc ){
+        port = atoi(argv[2]);
+
+        if ( strcmp( argv[1], "start" ) == 0 && port > 1024 ){
+            start_server();
+        }
+    }
 
     return 0;
 }
+
